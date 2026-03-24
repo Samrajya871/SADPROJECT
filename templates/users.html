@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Staff Users{% endblock %}
+{% block page_title %}Staff Users{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('add_user') }}" class="btn btn-primary">+ Add Staff</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in staff %}
+        <tr>
+          <td style="color:var(--muted);font-size:0.82rem">{{ u.id }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--caramel),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--espresso);font-size:0.85rem;flex-shrink:0">
+                {{ u.name[0].upper() }}
+              </span>
+              <div>
+                <strong>{{ u.name }}</strong>
+                {% if u.id == session.get('user_id') %}
+                  <span class="badge" style="background:var(--cream);color:var(--brown);border:1px solid var(--tan);margin-left:6px;font-size:0.65rem">You</span>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td><code>{{ u.username }}</code></td>
+          <td>
+            {% if u.role == 'admin' %}
+              <span class="badge" style="background:#FEF3C7;color:#92400E;border:1px solid rgba(146,64,14,0.15)">👑 Admin</span>
+            {% elif u.role == 'manager' %}
+              <span class="badge" style="background:#DBEAFE;color:#1E40AF;border:1px solid rgba(30,64,175,0.15)">🏪 Manager</span>
+            {% else %}
+              <span class="badge" style="background:var(--cream);color:var(--brown);border:1px solid var(--tan)">👤 Staff</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.active %}
+              <span class="badge badge-ok">● Active</span>
+            {% else %}
+              <span class="badge badge-low">● Inactive</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--muted);font-size:0.82rem">{{ u.created_at[:10] }}</td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center">
+              <a href="{{ url_for('edit_user', uid=u.id) }}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+              {% if u.id != session.get('user_id') %}
+              <form method="post" action="{{ url_for('delete_user', uid=u.id) }}" style="display:inline"
+                    onsubmit="return confirm('Delete {{ u.name }}? This cannot be undone.')">
+                <button class="btn btn-danger btn-sm">🗑</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Role permissions -->
+<div class="card">
+  <div class="card-header"><h2>Role Permissions</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>👑 Admin</th>
+          <th>🏪 Manager</th>
+          <th>👤 Staff</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for module in [('Dashboard','dashboard'),('Products','products'),('Customers','customers'),('Orders','orders'),('Staff Users','users')] %}
+        <tr>
+          <td><strong>{{ module[0] }}</strong></td>
+          <td><span style="color:var(--success);font-size:1rem">✓</span></td>
+          <td>
+            {% if module[1] != 'users' %}
+              <span style="color:var(--success);font-size:1rem">✓</span>
+            {% else %}
+              <span style="color:var(--tan)">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if module[1] in ['dashboard','orders'] %}
+              <span style="color:var(--success);font-size:1rem">✓</span>
+            {% else %}
+              <span style="color:var(--tan)">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

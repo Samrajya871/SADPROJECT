@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}New Order{% endblock %}
+{% block page_title %}New Order{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('orders') }}" class="btn btn-secondary">← Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px">
+  <div class="card-header"><h2>Create New Order</h2></div>
+  <div class="card-body">
+    <form method="post" id="order-form">
+
+      <div class="form-group" style="margin-bottom:24px">
+        <label>Customer *</label>
+        <select name="customer_id" class="form-control" required>
+          <option value="">— Select Customer —</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}">{{ c.name }} ({{ c.email }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="card" style="margin-bottom:0;border:1px solid var(--tan)">
+        <div class="card-header" style="padding:12px 16px">
+          <h2 style="font-size:0.88rem">Order Items</h2>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addRow()">+ Add Item</button>
+        </div>
+        <div class="table-wrap">
+          <table class="order-items-table" id="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Unit Price</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="items-body">
+              <tr id="row-0">
+                <td>
+                  <select name="product_id[]" class="form-control product-select"
+                          onchange="updatePrice(this)" required style="min-width:160px">
+                    <option value="">— Product —</option>
+                    {% for p in products %}
+                      <option value="{{ p.id }}" data-price="{{ p.price }}" data-stock="{{ p.stock_qty }}">
+                        {{ p.name }} ({{ p.stock_qty }} left)
+                      </option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td><span class="unit-price" style="color:var(--muted);font-size:0.85rem">—</span></td>
+                <td>
+                  <input type="number" name="quantity[]" class="form-control qty-input"
+                         min="1" value="1" style="width:72px" oninput="updateSubtotal(this)" required>
+                </td>
+                <td><span class="subtotal" style="font-weight:500">—</span></td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm"
+                          onclick="removeRow(this)" style="padding:4px 8px">✕</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:14px 16px;display:flex;justify-content:flex-end;align-items:center;gap:12px;border-top:1px solid var(--tan)">
+          <span style="font-size:0.82rem;color:var(--muted)">Total</span>
+          <span class="order-total" id="grand-total">NPR 0.00</span>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;display:flex;gap:10px">
+        <button type="submit" class="btn btn-primary">✅ Place Order</button>
+        <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const products = {{ products | tojson }};
+const productMap = {};
+{%- for p in products %}
+productMap[{{ p.id }}] = { price: {{ p.price }}, stock: {{ p.stock_qty }}, name: "{{ p.name }}" };
+{%- endfor %}
+let rowCount = 1;
+
+function updatePrice(sel) {
+  const row = sel.closest('tr');
+  const pid = sel.value;
+  const up = row.querySelector('.unit-price');
+  const sub = row.querySelector('.subtotal');
+  const qty = row.querySelector('.qty-input');
+  if (pid && productMap[pid]) {
+    const p = productMap[pid];
+    up.textContent = 'NPR ' + p.price.toFixed(2);
+    qty.max = p.stock;
+    sub.textContent = 'NPR ' + (p.price * parseInt(qty.value || 1)).toFixed(2);
+  } else {
+    up.textContent = '—'; sub.textContent = '—';
+  }
+  updateTotal();
+}
+
+function updateSubtotal(input) {
+  const row = input.closest('tr');
+  const pid = row.querySelector('.product-select').value;
+  const sub = row.querySelector('.subtotal');
+  if (pid && productMap[pid]) {
+    sub.textContent = 'NPR ' + (productMap[pid].price * parseInt(input.value || 0)).toFixed(2);
+  }
+  updateTotal();
+}
+
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll('#items-body tr').forEach(row => {
+    const pid = row.querySelector('.product-select')?.value;
+    const qty = parseInt(row.querySelector('.qty-input')?.value || 0);
+    if (pid && productMap[pid]) total += productMap[pid].price * qty;
+  });
+  document.getElementById('grand-total').textContent = 'NPR ' + total.toFixed(2);
+}
+
+function addRow() {
+  const t = document.getElementById('row-0').cloneNode(true);
+  t.id = 'row-' + rowCount++;
+  t.querySelector('.product-select').value = '';
+  t.querySelector('.unit-price').textContent = '—';
+  t.querySelector('.subtotal').textContent = '—';
+  t.querySelector('.qty-input').value = 1;
+  document.getElementById('items-body').appendChild(t);
+}
+
+function removeRow(btn) {
+  const rows = document.querySelectorAll('#items-body tr');
+  if (rows.length > 1) { btn.closest('tr').remove(); updateTotal(); }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('orders') }}" class="btn btn-secondary">← Back to Orders</a>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
+
+  <!-- Items -->
+  <div class="card">
+    <div class="card-header"><h2>Order Items</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Image</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}"
+                     alt="{{ item.product_name }}" class="product-img">
+              {% else %}
+                <div class="product-img-placeholder">🍞</div>
+              {% endif %}
+            </td>
+            <td><strong>{{ item.product_name }}</strong></td>
+            <td>{{ item.quantity }}</td>
+            <td>NPR {{ "%.2f"|format(item.unit_price) }}</td>
+            <td>NPR {{ "%.2f"|format(item.quantity * item.unit_price) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align:right;color:var(--text-light);font-weight:500">Total:</td>
+            <td><span class="order-total">NPR {{ "%.2f"|format(order.total_price) }}</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-header"><h2>Order Info</h2></div>
+      <div class="card-body">
+        <div style="margin-bottom:16px">
+          <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px">Status</p>
+          <span class="badge badge-{{ order.status }}">{{ order.status.title() }}</span>
+        </div>
+        <div style="margin-bottom:16px">
+          <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:4px">Order Date</p>
+          <p style="font-size:0.88rem">{{ order.order_date[:16] }}</p>
+        </div>
+        <div>
+          <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:4px">Customer</p>
+          <p style="font-weight:600;margin-bottom:2px">{{ order.customer_name }}</p>
+          <p style="font-size:0.82rem;color:var(--muted)">{{ order.email }}</p>
+          <p style="font-size:0.82rem;color:var(--muted)">{{ order.phone or '' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Update Status</h2></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('update_order_status', oid=order.id) }}">
+          <div class="form-group" style="margin-bottom:12px">
+            <select name="status" class="form-control">
+              {% for s in ['pending','processing','completed','cancelled'] %}
+                <option value="{{ s }}" {{ 'selected' if order.status == s }}>{{ s.title() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Update Status</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media (max-width: 700px) {
+  .order-layout { grid-template-columns: 1fr !important; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('add_order') }}" class="btn btn-primary">+ New Order</a>
+{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-icon">🎂</span>
+    <span class="stat-value">{{ stats.products }}</span>
+    <span class="stat-label">Products</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">👥</span>
+    <span class="stat-value">{{ stats.customers }}</span>
+    <span class="stat-label">Customers</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">📋</span>
+    <span class="stat-value">{{ stats.orders }}</span>
+    <span class="stat-label">Total Orders</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">💰</span>
+    <span class="stat-value" style="font-size:1.2rem">NPR {{ "%.0f"|format(stats.revenue) }}</span>
+    <span class="stat-label">Revenue</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">⏳</span>
+    <span class="stat-value">{{ stats.pending }}</span>
+    <span class="stat-label">Pending Orders</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">⚠️</span>
+    <span class="stat-value">{{ stats.low_stock }}</span>
+    <span class="stat-label">Low Stock Items</span>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card">
+  <div class="card-header">
+    <h2>Recent Orders</h2>
+    <a href="{{ url_for('orders') }}" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td><strong>#{{ o.id }}</strong></td>
+          <td>{{ o.customer_name }}</td>
+          <td>NPR {{ "%.2f"|format(o.total_price) }}</td>
+          <td><span class="badge badge-{{ o.status }}">{{ o.status.title() }}</span></td>
+          <td style="color:var(--muted);font-size:0.82rem">{{ o.order_date[:16] }}</td>
+          <td><a href="{{ url_for('order_detail', oid=o.id) }}" class="btn btn-secondary btn-sm">View</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

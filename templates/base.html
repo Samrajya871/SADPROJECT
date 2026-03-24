@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Bakery{% endblock %} — Sweet Crumbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% set role = session.get('role','staff') %}
+{% set perms = {
+  'admin':   ['dashboard','products','customers','orders','users'],
+  'manager': ['dashboard','products','customers','orders'],
+  'staff':   ['dashboard','orders']
+} %}
+{% set my_perms = perms.get(role, []) %}
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">🥐</div>
+    <div class="logo-text">
+      <h1>Sweet Crumbs</h1>
+      <span>Bakery Management</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    {% if 'dashboard' in my_perms %}
+    <a href="{{ url_for('index') }}" class="nav-item {{ 'active' if request.endpoint == 'index' else '' }}">
+      <span class="nav-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+      </span>
+      <span>Dashboard</span>
+    </a>
+    {% endif %}
+    {% if 'products' in my_perms %}
+    <a href="{{ url_for('products') }}" class="nav-item {{ 'active' if 'product' in (request.endpoint or '') else '' }}">
+      <span class="nav-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg>
+      </span>
+      <span>Products</span>
+    </a>
+    {% endif %}
+    {% if 'customers' in my_perms %}
+    <a href="{{ url_for('customers') }}" class="nav-item {{ 'active' if 'customer' in (request.endpoint or '') else '' }}">
+      <span class="nav-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+      </span>
+      <span>Customers</span>
+    </a>
+    {% endif %}
+    {% if 'orders' in my_perms %}
+    <a href="{{ url_for('orders') }}" class="nav-item {{ 'active' if 'order' in (request.endpoint or '') else '' }}">
+      <span class="nav-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+      </span>
+      <span>Orders</span>
+    </a>
+    {% endif %}
+    {% if 'users' in my_perms %}
+    <a href="{{ url_for('users') }}" class="nav-item {{ 'active' if 'user' in (request.endpoint or '') and request.endpoint != 'profile' else '' }}">
+      <span class="nav-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      </span>
+      <span>Staff</span>
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="user-avatar">{{ session.get('name','?')[0].upper() }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ session.get('name','User') }}</span>
+        <span class="user-role role-{{ session.get('role','staff') }}">{{ session.get('role','staff').title() }}</span>
+      </div>
+      <div class="user-dropdown">
+        <a href="{{ url_for('profile') }}">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm2-3a2 2 0 11-4 0 2 2 0 014 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4z"/></svg>
+          Change Password
+        </a>
+        <a href="{{ url_for('logout') }}" class="logout-link">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 01-.5.5h-8a.5.5 0 01-.5-.5v-9a.5.5 0 01.5-.5h8a.5.5 0 01.5.5v2a.5.5 0 001 0v-2A1.5 1.5 0 009.5 2h-8A1.5 1.5 0 000 3.5v9A1.5 1.5 0 001.5 14h8a1.5 1.5 0 001.5-1.5v-2a.5.5 0 00-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 000-.708l-3-3a.5.5 0 00-.708.708L14.293 7.5H5.5a.5.5 0 000 1h8.793l-2.147 2.146a.5.5 0 00.708.708l3-3z"/></svg>
+          Logout
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+      </button>
+      <h2 class="topbar-title">{% block page_title %}{% endblock %}</h2>
+    </div>
+    <div class="topbar-actions">
+      {% block topbar_actions %}{% endblock %}
+    </div>
+  </header>
+
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">
+          <span class="alert-icon">{{ '✓' if cat=='success' else '✕' if cat=='danger' else 'i' }}</span>
+          <span>{{ msg }}</span>
+          <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

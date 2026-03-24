@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Products{% endblock %}
+{% block page_title %}Products{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('add_product') }}" class="btn btn-primary">+ Add Product</a>
+{% endblock %}
+
+{% block content %}
+<div class="search-filter-section">
+  <form method="get" class="search-bar">
+    <input class="form-control" name="search" placeholder="🔍 Search products..." value="{{ search }}">
+    <select name="category" class="form-control" style="max-width:180px">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}" {{ 'selected' if cat_filter == cat.id|string }}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if search or cat_filter %}
+      <a href="{{ url_for('products') }}" class="btn btn-secondary">✕ Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if products %}
+  <div class="products-container">
+    {% for p in products %}
+      <div class="product-card">
+        <div class="product-image-wrapper">
+          {% if p.image_path %}
+            <img src="{{ url_for('static', filename='uploads/' + p.image_path) }}" alt="{{ p.name }}" />
+          {% else %}
+            <div class="product-image-placeholder">🍞</div>
+          {% endif %}
+          <div class="product-overlay">
+            <a href="{{ url_for('edit_product', pid=p.id) }}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+            <form method="post" action="{{ url_for('delete_product', pid=p.id) }}" style="display:inline"
+                  onsubmit="return confirm('Delete {{ p.name }}?')">
+              <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+            </form>
+          </div>
+        </div>
+        <div class="product-info">
+          <div class="product-name">{{ p.name }}</div>
+          {% if p.description %}
+            <div class="product-description">{{ p.description }}</div>
+          {% endif %}
+          <div class="product-meta">
+            <div class="product-price">NPR {{ "%.2f"|format(p.price) }}</div>
+            <span class="stock-badge {{ 'low' if p.stock_qty < 5 else 'ok' }}">{{ p.stock_qty }} in stock</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card">
+    <div class="empty-state">
+      <span class="empty-state-icon">📭</span>
+      <p style="font-size:0.95rem;margin-bottom:8px;color:var(--text-light)">No products found.</p>
+      <p style="font-size:0.82rem">Try adjusting your filters or add a new product.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
